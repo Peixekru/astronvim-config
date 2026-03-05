@@ -1,0 +1,15 @@
+# Lazy.nvim lock file (opcional - pode ser versionado se quiser reproducibilidade)
+# lazy-lock.json
+
+# Cache e logs
+.cache/
+logs/
+
+# Backup files
+*.bak
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
