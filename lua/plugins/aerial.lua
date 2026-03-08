@@ -9,8 +9,18 @@ return {
 
     -- 2. Tipos de símbolos exibidos
     filter_kind = {
-      "Class", "Constructor", "Enum", "Function", "Interface", "Module",
-      "Method", "Struct", "Variable", "Constant", "Field", "Property",
+      "Class",
+      "Constructor",
+      "Enum",
+      "Function",
+      "Interface",
+      "Module",
+      "Method",
+      "Struct",
+      "Variable",
+      "Constant",
+      "Field",
+      "Property",
     },
 
     -- 3. Atalhos personalizados locais (Isolando o comportamento da árvore)
@@ -32,8 +42,6 @@ return {
     post_attach_symbol = true,
 
     -- 6. Força a carga dos dados assim que você abre o arquivo
-    on_attach = function(bufnr)
-      require("aerial").sync_load()
-    end,
+    on_attach = function(bufnr) require("aerial").sync_load() end,
   },
 }

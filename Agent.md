@@ -14,20 +14,20 @@
 ├── lazy-lock.json           # Lock file dos plugins
 ├── lua/
 │   ├── lazy_setup.lua       # Configuração do Lazy.nvim
-│   ├── polish.lua           # Configurações finais (desativado)
+│   ├── polish.lua           # Configurações finais (arquivo ativo, sem conteúdo custom)
 │   ├── community.lua        # Configurações da comunidade
 │   └── plugins/
 │       ├── astrocore.lua    # Configurações centrais (maps, options)
-│       ├── astrolsp.lua     # Configurações de LSP (desativado)
+│       ├── astrolsp.lua     # Configurações de LSP
 │       ├── astroui.lua      # Configurações de UI (tema, ícones)
 │       ├── catppuccin.lua   # Configurações do tema Catppuccin
 │       ├── which-key.lua    # Configurações do Which-Key
 │       ├── user.lua         # Configurações customizadas (dashboard)
 │       ├── aerial.lua       # Configurações do Aerial
-│       ├── mason.lua        # Configurações do Mason (desativado)
+│       ├── mason.lua        # Configurações do Mason
 │       ├── neo-tree.lua     # Configurações do Neo-tree
-│       ├── none-ls.lua      # Configurações do None-ls (desativado)
-│       └── treesitter.lua   # Configurações do Treesitter (desativado)
+│       ├── none-ls.lua      # Configurações do None-ls
+│       └── treesitter.lua   # Configurações do Treesitter
 ```
 
 ---
@@ -132,7 +132,7 @@ fillchars = "vert: ,eob: "  -- Remove linha vertical e ~ após o buffer
 ### **Core**
 - `lazy.nvim` - Gerenciador de plugins
 - `astrocore` - Configurações centrais
-- `astrolsp` - LSP (desativado no config)
+- `astrolsp` - LSP
 - `astroui` - Interface e tema
 
 ### **Tema**
@@ -149,7 +149,7 @@ fillchars = "vert: ,eob: "  -- Remove linha vertical e ~ após o buffer
 - `nvim-lspconfig` - Configuração de LSP
 - `mason.nvim` - Gerenciador de servidores LSP
 - `mason-lspconfig.nvim` - Integração Mason + LSP
-- `none-ls.nvim` - Linters e formatters (desativado)
+- `none-ls.nvim` - Linters e formatters
 - `cmp` - Autocompletion
 
 ### **Outros**
@@ -258,6 +258,27 @@ window = {
 
 ---
 
+## 🧭 Política de Contexto de Projeto (Mono e Não-Mono)
+
+### **Ordem oficial de detecção de raiz**
+1. Marcadores técnicos do serviço (mais próximos do arquivo)
+2. Marcadores de workspace/monorepo
+3. Raiz git (`.git`)
+4. Diretório do arquivo (fallback final)
+
+### **Marcadores de workspace/monorepo**
+- `package.json` com `workspaces`
+- `pnpm-workspace.yaml`
+- `turbo.json`
+- `nx.json`
+- `lerna.json`
+- `rush.json`
+
+### **Diagnóstico rápido**
+```vim
+:RootInfo          " Mostra root detectada, motivo, LSPs ativos e formatters
+```
+
 ## 🐛 Problemas Comuns e Soluções
 
 ### **Janelas flutuantes com vazamento de cor**
@@ -291,12 +312,126 @@ window = {
 
 ## 🔄 Histórico de Mudanças
 
-### **Março 2026**
-- ✅ Tema catppuccin-mocha com transparência total
-- ✅ Bordas arredondadas no Lazy e Which-Key
-- ✅ Which-Key com título "Start" em itálico azul
-- ✅ Dashboard com header minimalista
-- ✅ Atalho `<Leader>L` para Lazy
+### **Março 2026 — Registro Técnico Detalhado**
+
+#### **1) Ajustes de stack frontend e ecossistema**
+- ✅ `community.lua`:
+  - mantido `pack.vue`
+  - adicionado `pack.svelte`
+  - mantido `pack.typescript` (React via TS/TSX)
+  - removido `pack.react` (módulo inexistente no astrocommunity instalado)
+- ✅ Resultado:
+  - cobertura prática para Vue + Svelte + React (via TS/TSX)
+  - sem erro de inicialização por import inválido
+
+#### **2) Estratégia de formatação (dois cenários)**
+- ✅ `astrolsp.lua`:
+  - `format_on_save.enabled = true`
+  - `formatting.timeout_ms = 4000` (fluxo rápido no salvar)
+  - desativado formatador de `eslint`, `vtsls` e `volar` para evitar disputa com `none-ls`
+- ✅ `polish.lua`:
+  - comando `:FormatForce` (padrão 20000ms, aceita argumento, ex.: `:FormatForce 60000`)
+  - comando `:FormatForceMax` (60000ms fixo)
+- ✅ Resultado:
+  - salvar continua fluido no dia a dia
+  - existe caminho explícito para arquivo grande/legado
+
+#### **3) none-ls e estabilidade de lint/format**
+- ✅ `none-ls.lua`:
+  - cadeia de format definida: `prettierd` -> fallback `prettier`
+  - `prettierd/prettier` limitados a filetypes web (`js/ts/tsx/vue/svelte/json/yaml/css/scss/html/markdown`)
+  - removido `eslint_d` de diagnostics/code_actions (builtin ausente na versão instalada do none-ls)
+- ✅ Resultado:
+  - eliminado erro de load: `attempt to index field 'eslint_d' (a nil value)`
+  - comportamento mais previsível entre projetos
+
+#### **4) Gestão de swap e erro E325**
+- ✅ `polish.lua`:
+  - comando `:SwapList` (listar swaps órfãos)
+  - comando `:SwapClean` e `:SwapClean!` (limpeza segura com confirmação)
+- ✅ Resultado:
+  - processo padronizado para resolver `E325: ATTENTION`
+  - redução de bloqueios ao abrir arquivos pelo Neo-tree
+
+#### **5) Política de contexto de projeto (mono e não-mono)**
+- ✅ Novo arquivo: `lua/utils/project_root.lua`
+  - regra oficial de root:
+    1. marcadores técnicos do serviço
+    2. marcadores de workspace/monorepo
+    3. `.git`
+    4. diretório do arquivo (fallback final)
+  - marcadores de workspace:
+    - `package.json` com `workspaces`
+    - `pnpm-workspace.yaml`
+    - `turbo.json`
+    - `nx.json`
+    - `lerna.json`
+    - `rush.json`
+- ✅ `astrolsp.lua` e `none-ls.lua` migrados para usar a mesma política central
+- ✅ `polish.lua`:
+  - comando `:RootInfo` para exibir:
+    - arquivo atual
+    - filetype
+    - root detectada
+    - motivo da root (`servico`, `workspace`, `git`, `diretorio_do_arquivo`)
+    - clientes LSP ativos
+    - formatadores detectados
+- ✅ Resultado:
+  - detecção consistente entre LSP e none-ls
+  - diagnóstico operacional rápido quando algo não anexa
+
+#### **6) Testes de smoke executados**
+- ✅ React (`Desktop/nvim-lsp-tests/react-smoke`):
+  - LSPs ativos observados: `eslint`, `vtsls`, `null-ls`
+  - lint proposital validado (`no-unused-vars`)
+  - `:FormatForce` e `:FormatForceMax` validados
+- ✅ Svelte (`Desktop/nvim-lsp-tests/svelte-smoke`):
+  - LSP `svelte` instalado e ativo
+  - diagnóstico de tipo em `App.svelte` validado manualmente
+- ✅ Resultado:
+  - fluxo principal de frontend validado manualmente pelo usuário
+
+#### **7) Copilot inline (modo padrão)**
+- ✅ `community.lua`:
+  - adicionado `astrocommunity.completion.copilot-lua`
+- ✅ Plugin instalado via `:Lazy sync`:
+  - `zbirenbaum/copilot.lua`
+- ✅ Estado padrão atual:
+  - `suggestion.auto_trigger = true`
+  - `debounce = 150` (config do pack community)
+- ✅ Atalho padrão de aceitar sugestão:
+  - `<M-l>` (Alt + l)
+- ✅ Autenticação:
+  - `:Copilot auth` (ou `:Copilot setup`)
+  - credenciais em `~/.config/github-copilot/apps.json`
+
+#### **8) Padrões de trabalho definidos**
+- ✅ Não implementar mudanças sem explicar antes:
+  - o que
+  - onde
+  - por que
+  - como
+- ✅ Comentários novos em código: pt-BR
+- ✅ Evolução incremental e validada por etapa pequena
+
+#### **9) Arquivos impactados no ciclo**
+- `lua/community.lua`
+- `lua/plugins/astrolsp.lua`
+- `lua/plugins/none-ls.lua`
+- `lua/plugins/mason.lua`
+- `lua/plugins/treesitter.lua`
+- `lua/polish.lua`
+- `lua/utils/project_root.lua` (novo)
+- `lazy-lock.json`
+- `Agent.md`
+
+#### **10) Comandos operacionais ativos**
+- `:FormatForce [timeout_ms]`
+- `:FormatForceMax`
+- `:SwapList`
+- `:SwapClean` / `:SwapClean!`
+- `:RootInfo`
+- `:Copilot auth`
 - ✅ Comentários na mesma cor dos números de linha (#45475a)
 - ✅ Neo-tree sem bordas e transparente
 - ✅ winblend e pumblend configurados para 0
@@ -319,6 +454,56 @@ title = " Seu Título ",
 
 ### **Mudar estilo da borda**
 Opções: `"single"`, `"double"`, `"rounded"`, `"solid"`, `"shadow"`, `"none"`
+
+---
+
+## 🧪 Sugestões de Revisão e Melhorias (Perfil Tiago)
+
+### **Contexto do perfil considerado**
+- Foco principal: frontend no ecossistema JavaScript/TypeScript
+- Stack atual: Vue (principal), React e Svelte (prontas para uso)
+- Preferência de uso: assistências visuais discretas, estabilidade e previsibilidade
+- Fluxo de trabalho: evolução incremental, sem mudanças bruscas
+- Hardware: ambiente mais antigo, priorizando fluidez no dia a dia
+
+### **Revisão semanal recomendada (15-20 min)**
+1. Verificar status dos plugins:
+   - `:Lazy`
+   - `:Lazy check`
+2. Verificar contexto e anexos de LSP em projeto ativo:
+   - `:RootInfo`
+   - `:LspInfo`
+3. Verificar se o autosave-format está equilibrado:
+   - salvar arquivo comum com `leader + w`
+   - usar `:FormatForce` em arquivo grande
+4. Limpar swaps órfãos quando necessário:
+   - `:SwapList`
+   - `:SwapClean!`
+
+### **Melhorias priorizadas (curto prazo)**
+1. Ajustar keymap de aceitar Copilot para terminal atual (se `<M-l>` não for estável).
+2. Criar variação de perfil visual por camadas (suave/equilibrado/intenso), mantendo tema atual.
+3. Padronizar checklist de validação rápida ao iniciar projeto novo:
+   - abrir arquivo da stack
+   - `:LspInfo`
+   - `:RootInfo`
+   - salvar e validar formatação
+
+### **Melhorias de médio prazo (quando fizer sentido)**
+1. Avaliar `blink-copilot` para integrar sugestões IA no menu de completion (sem substituir inline).
+2. Criar comando de auditoria leve para exibir resumo de saúde do ambiente:
+   - LSPs instalados
+   - formatadores disponíveis
+   - comandos custom ativos
+3. Refinar regras por linguagem para reduzir ainda mais ruído de diagnóstico em projetos híbridos.
+
+### **Critérios de sucesso para futuras melhorias**
+1. Não quebrar fluxo de codificação durante `:w`.
+2. Não introduzir dependência de nomes de pastas para detectar contexto.
+3. Toda melhoria nova deve ser:
+   - explicada antes (o que/onde/por que/como)
+   - validada com teste simples
+   - documentada neste arquivo
 
 ### **Ativar/desativar plugins**
 Em qualquer arquivo de plugin:
