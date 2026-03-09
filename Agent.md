@@ -14,8 +14,10 @@
 ├── lazy-lock.json           # Lock file dos plugins
 ├── lua/
 │   ├── lazy_setup.lua       # Configuração do Lazy.nvim
-│   ├── polish.lua           # Configurações finais (arquivo ativo, sem conteúdo custom)
+│   ├── polish.lua           # Comandos utilitários (FormatForce, Swap*, RootInfo)
 │   ├── community.lua        # Configurações da comunidade
+│   ├── utils/
+│   │   └── project_root.lua # Regra central de detecção de raiz (serviço/workspace/git)
 │   └── plugins/
 │       ├── astrocore.lua    # Configurações centrais (maps, options)
 │       ├── astrolsp.lua     # Configurações de LSP
@@ -29,6 +31,53 @@
 │       ├── none-ls.lua      # Configurações do None-ls
 │       └── treesitter.lua   # Configurações do Treesitter
 ```
+
+---
+
+## 🗂️ Organização Estendida (Plugins e Configurações)
+
+### **Ordem de carregamento (fonte da verdade)**
+1. `init.lua` -> bootstrap do Lazy.
+2. `lua/lazy_setup.lua` -> registra imports base.
+3. `lua/community.lua` -> packs do AstroCommunity.
+4. `lua/plugins/*.lua` -> overrides e plugins custom por domínio.
+5. `lua/polish.lua` -> comandos e ajustes finais pós-inicialização.
+
+### **Organização por domínio funcional**
+
+| Domínio | Arquivos | Objetivo |
+|---------|----------|----------|
+| Bootstrap | `init.lua`, `lua/lazy_setup.lua` | Subir Lazy + AstroNvim com opções globais |
+| Packs Community | `lua/community.lua` | Habilitar stacks prontas (Vue, Svelte, TS, Copilot, Flash) |
+| Core Editor | `lua/plugins/astrocore.lua`, `lua/plugins/astroui.lua` | Maps, options, tema ativo, ícones |
+| Tema e Highlights | `lua/plugins/catppuccin.lua`, `lua/plugins/which-key.lua` | Aparência, transparência e componentes visuais |
+| Navegação UI | `lua/plugins/neo-tree.lua`, `lua/plugins/aerial.lua`, `lua/plugins/user.lua` | Árvore de arquivos, símbolos e dashboard |
+| Linguagens e LSP | `lua/plugins/astrolsp.lua`, `lua/plugins/mason.lua`, `lua/plugins/none-ls.lua`, `lua/plugins/treesitter.lua` | LSP, ferramentas externas, formatação/lint e parsing |
+| Infra de Root | `lua/utils/project_root.lua` | Política única de detecção de raiz |
+| Operação diária | `lua/polish.lua` | Comandos de diagnóstico, formatação e manutenção |
+
+### **Matriz plugin -> arquivo -> responsabilidade**
+
+| Plugin | Arquivo | Responsabilidade |
+|--------|---------|------------------|
+| `AstroNvim/astrocore` | `lua/plugins/astrocore.lua` | Opções globais e keymaps base |
+| `AstroNvim/astrolsp` | `lua/plugins/astrolsp.lua` | Config LSP por linguagem + política de format_on_save |
+| `AstroNvim/astroui` | `lua/plugins/astroui.lua` | Corescheme ativo e ícones da interface |
+| `catppuccin/nvim` | `lua/plugins/catppuccin.lua` | Transparência e highlights customizados |
+| `folke/which-key.nvim` | `lua/plugins/which-key.lua` | Janela e estilo do menu de atalhos |
+| `nvim-neo-tree/neo-tree.nvim` | `lua/plugins/neo-tree.lua` | Árvore de arquivos e keymaps de navegação |
+| `stevearc/aerial.nvim` | `lua/plugins/aerial.lua` | Símbolos por buffer, sem interferir em folds do editor |
+| `nvimtools/none-ls.nvim` | `lua/plugins/none-ls.lua` | Formatadores e diagnósticos externos (Prettier, Python, SQL, Lua) |
+| `WhoIsSethDaniel/mason-tool-installer.nvim` | `lua/plugins/mason.lua` | Garantir instalação de LSPs e ferramentas |
+| `nvim-treesitter/nvim-treesitter` | `lua/plugins/treesitter.lua` | Parsers para destaque e estrutura sintática |
+| `folke/snacks.nvim` | `lua/plugins/user.lua` | Header do dashboard |
+| `ray-x/lsp_signature.nvim` | `lua/plugins/user.lua` | Assinatura inline de funções no modo insert |
+
+### **Convenções de manutenção**
+- Cada arquivo em `lua/plugins/` deve ter um único objetivo funcional.
+- Regras de root devem ficar centralizadas apenas em `lua/utils/project_root.lua`.
+- Qualquer plugin novo deve ser documentado nesta matriz com: plugin, arquivo e responsabilidade.
+- Ajustes operacionais (comandos `:...`) devem entrar em `lua/polish.lua`, não em arquivos de plugin.
 
 ---
 
@@ -57,7 +106,7 @@
 | Highlight | Cor | Descrição |
 |-----------|-----|-----------|
 | `LineNr` | `#45475a` | Números de linha (Overlay0) |
-| `Comment` | `#45475a` + itálico | Comentários (mesma cor dos números) |
+| `Comment` | `#6A6A6B` + itálico | Comentários discretos |
 | `WhichKeyTitle` | `colors.blue` + itálico | Título do Which-Key |
 
 ### **Configurações Globais do Catppuccin**
@@ -111,7 +160,7 @@ float = {
 - **Posição do título:** Centralizado
 
 ### **Dashboard (Snacks.nvim)**
-- **Header:** `"╭──────────────────────────────╯  Neovim  ╰──────────────────────────────╮"`
+- **Header:** `"╭──────────────────────────────╯  NEOVIM  ╰──────────────────────────────╮"`
 - **Estilo:** Linha única estilizada simétrica
 
 ### **Opções de Blend**
@@ -173,7 +222,7 @@ float = { transparent = true, solid = false }
 Normal = { bg = "NONE" }
 NormalNC = { bg = "NONE" }
 NormalSB = { bg = "NONE" }
-Comment = { fg = "#45475a", italic = true }
+Comment = { fg = "#6A6A6B", italic = true }
 WhichKeyTitle = { fg = colors.blue, italic = true }
 ```
 
@@ -214,7 +263,7 @@ win = {
 ### **`lua/plugins/user.lua`**
 ```lua
 -- Dashboard header:
-header = "╭──────────────────────────────╯  Neovim  ╰──────────────────────────────╮"
+header = "╭──────────────────────────────╯  NEOVIM  ╰──────────────────────────────╮"
 ```
 
 ### **`lua/plugins/neo-tree.lua`**
@@ -332,18 +381,43 @@ window = {
 - ✅ `polish.lua`:
   - comando `:FormatForce` (padrão 20000ms, aceita argumento, ex.: `:FormatForce 60000`)
   - comando `:FormatForceMax` (60000ms fixo)
+  - comando `:FormatInfo` (mostra qual formatador foi priorizado e por quê)
+- ✅ Política atual:
+  - o projeto é a fonte da verdade para lint/format
+  - em projetos web com evidência explícita de Prettier (`.prettierrc`, `prettier.config.*`, `package.json#prettier` ou dependências relacionadas), `prettier/prettierd` é priorizado
+  - em projetos web com ESLint e sem evidência de Prettier, `eslint_d --fix-to-stdout` é priorizado via `none-ls`
+  - LSPs (`eslint`, `vtsls`, `volar`) permanecem sem formatação para evitar disputa
 - ✅ Resultado:
   - salvar continua fluido no dia a dia
   - existe caminho explícito para arquivo grande/legado
+  - a decisão de formatador fica previsível e auditável por buffer
 
 #### **3) none-ls e estabilidade de lint/format**
 - ✅ `none-ls.lua`:
-  - cadeia de format definida: `prettierd` -> fallback `prettier`
+  - política de format definida por projeto: `eslint_d` ou `prettierd` -> fallback `prettier`
   - `prettierd/prettier` limitados a filetypes web (`js/ts/tsx/vue/svelte/json/yaml/css/scss/html/markdown`)
+  - `eslint_d` de formatting implementado como source custom (`--fix-to-stdout`) porque o builtin não existe nessa versão instalada do none-ls
   - removido `eslint_d` de diagnostics/code_actions (builtin ausente na versão instalada do none-ls)
 - ✅ Resultado:
   - eliminado erro de load: `attempt to index field 'eslint_d' (a nil value)`
   - comportamento mais previsível entre projetos
+  - o editor para de impor `prettier` em todo caso web e passa a respeitar o contrato do repositório
+
+#### **3.1) Conflito Prettier x ESLint em projeto Vue real**
+- ✅ Caso observado:
+  - arquivo `frontend/src/components/Logout.vue` em `Documents/dev/pertencer-lideres/...`
+  - warning do ESLint: `vue/singleline-html-element-content-newline`
+  - `prettier` reformatava o arquivo para um estilo rejeitado por essa regra
+- ✅ Diagnóstico:
+  - o problema não era o Neovim
+  - havia conflito de política dentro do projeto: Prettier formatando e ESLint cobrando estilo incompatível
+- ✅ Decisão adotada:
+  - seguir a prática atual do ecossistema Vue: Prettier manda na formatação; ESLint fica com qualidade/lint
+  - aplicar `eslint-config-prettier` no `eslint.config.js` do projeto
+- ✅ Resultado:
+  - o warning desapareceu
+  - salvar com Prettier deixou de reintroduzir formato rejeitado pelo ESLint
+  - lição operacional: quando houver impasse Prettier x ESLint, corrigir a configuração do projeto antes de mexer na configuração global do editor
 
 #### **4) Gestão de swap e erro E325**
 - ✅ `polish.lua`:
@@ -428,11 +502,12 @@ window = {
 #### **10) Comandos operacionais ativos**
 - `:FormatForce [timeout_ms]`
 - `:FormatForceMax`
+- `:FormatInfo`
 - `:SwapList`
 - `:SwapClean` / `:SwapClean!`
 - `:RootInfo`
 - `:Copilot auth`
-- ✅ Comentários na mesma cor dos números de linha (#45475a)
+- ✅ Comentários em tom discreto com itálico (`#6A6A6B`)
 - ✅ Neo-tree sem bordas e transparente
 - ✅ winblend e pumblend configurados para 0
 

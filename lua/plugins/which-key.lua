@@ -11,7 +11,7 @@ return {
     win = {
       border = "rounded", -- Rounded borders
       padding = { 2, 2, 2, 2 }, -- Inner padding
-      title = " Start ", -- Title at the top of the window (with spaces)
+      title = " Which-Key ", -- Title at the top of the window (with spaces)
       title_pos = "center", -- Title position: "center", "left", or "right"
     },
   },

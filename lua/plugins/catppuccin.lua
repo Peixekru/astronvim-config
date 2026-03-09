@@ -24,6 +24,10 @@ return {
           -- 2. Transparência Específica para Neo-tree (Árvore de Arquivos)
           NeoTreeNormal = { bg = "NONE" },
           NeoTreeNormalNC = { bg = "NONE" },
+          NeoTreeTabInactive = { bg = "NONE", fg = "#6A6A6B" },
+          NeoTreeTabActive = { bg = "NONE", fg = colors.text, bold = true },
+          NeoTreeTabSeparatorInactive = { bg = "NONE", fg = "#6A6A6B" },
+          NeoTreeTabSeparatorActive = { bg = "NONE", fg = colors.text },
           -- NeoTreeFloatNormal = { bg = "NONE" }, -- Garante transparência em janelas flutuantes do Neo-tree
           NeoTreeWinSeparator = { bg = "NONE", fg = "NONE" },
           -- NeoTreeIndentMarker = { fg = "#313244" }, -- Cor personalizada para os guias de indentação na árvore

@@ -35,6 +35,35 @@ end, {
   desc = "Forca formatacao com timeout de 60000ms",
 })
 
+-- Mostra qual formatador sera priorizado para o buffer atual.
+vim.api.nvim_create_user_command("FormatInfo", function()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local file_path = vim.api.nvim_buf_get_name(bufnr)
+  local filetype = vim.bo[bufnr].filetype
+  local format_policy = require "utils.format_policy"
+  local decision = format_policy.get_decision(file_path, filetype)
+
+  if not decision then
+    vim.notify("FormatInfo\nfiletype fora da politica web atual: " .. filetype, vim.log.levels.INFO)
+    return
+  end
+
+  local message = table.concat({
+    "FormatInfo",
+    "arquivo: " .. (file_path ~= "" and file_path or "[sem caminho]"),
+    "filetype: " .. (filetype ~= "" and filetype or "[sem filetype]"),
+    "root de formatacao: " .. decision.root,
+    "formatador priorizado: " .. decision.formatter,
+    "motivo: " .. decision.reason,
+    "detalhe: " .. decision.details,
+  }, "\n")
+
+  vim.notify(message, vim.log.levels.INFO)
+end, {
+  nargs = 0,
+  desc = "Mostra o formatador priorizado para o buffer atual",
+})
+
 -- Diretório padrão de swap do Neovim nesta configuração.
 local swap_dir = vim.fn.stdpath "state" .. "/swap"
 
