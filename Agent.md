@@ -544,6 +544,8 @@ Opções: `"single"`, `"double"`, `"rounded"`, `"solid"`, `"shadow"`, `"none"`
 ### **Revisão semanal recomendada (15-20 min)**
 1. Verificar status dos plugins:
    - `:Lazy`
+2. Diagnósticos mais visíveis:
+   - adicionar nota futura: resolver o "erro só aparece no fim" com UX de diagnostics (Trouble/tiny-inline) para apontar a linha de abertura nos casos sintáticos
    - `:Lazy check`
 2. Verificar contexto e anexos de LSP em projeto ativo:
    - `:RootInfo`
